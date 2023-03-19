@@ -1,9 +1,28 @@
-let welcome = async (): Promise<string> => {
-  return 'Hello World!';
-};
+const welcome = async (): Promise<string> => {
+  return 'Hello World!'
+}
 
-let hello = await welcome();
+console.log('acc', await getUtf8StrBodyContent('https://www.accommodation.cam.ac.uk/versionjson.txt'))
+console.log('prs', await getUtf8StrBodyContent('https://www.prs.uk.com/versionjson.txt'))
 
-await Promise.resolve(console.log('Hello World!🎉'));
+async function getUtf8StrBodyContent(url: string) {
+  const bodyContent = await getBodyContent(url)
+  const decoder = new TextDecoder(getUtf8Or16FromFirstTwoBytes(bodyContent.value))
+  return decoder.decode(bodyContent.value)
+}
 
-export { welcome }; 
+async function getBodyContent(url: string) {
+  const res = await fetch(url)
+  const bodyContent = await res.body.getReader().read()
+  return bodyContent
+}
+
+function getUtf8Or16FromFirstTwoBytes(bodyContent: Uint8Array) {
+  if (bodyContent.length >= 2 && bodyContent.slice(0, 2).toString() === '255,254') {
+    return 'utf-16'
+  } else {
+    return 'utf-8'
+  }
+}
+
+export { welcome }
